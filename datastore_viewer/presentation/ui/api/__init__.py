@@ -39,7 +39,11 @@ class ProjectAPIView(flask.views.MethodView):
         order = flask.request.args.get('order', '')
 
         encoder = DataStoreEntityJSONEncoder()
-        repository = DatastoreViewerRepository(project_name=project_name)
+        namespace = flask.request.args.get('namespace')
+        repository = DatastoreViewerRepository(
+            project_name=project_name,
+            namespace=namespace,
+        )
 
         properties_by_kind = repository.fetch_parent_properties()
         current_kind = kind
@@ -88,7 +92,11 @@ class ProjectAPIView(flask.views.MethodView):
 
     def delete(self, project_name: str, kind: str):
         data = flask.request.get_json()
-        repository = DatastoreViewerRepository(project_name=project_name)
+        namespace = flask.request.args.get('namespace')
+        repository = DatastoreViewerRepository(
+            project_name=project_name,
+            namespace=namespace,
+        )
         keys = []
         for key in data["url_safe_key"]:
             key_path = json.loads(base64.b64decode(key))
@@ -104,7 +112,11 @@ class ProjectAPIView(flask.views.MethodView):
 class EntityAPIView(flask.views.MethodView):
     def get(self, project_name: str, kind: str, url_safe_key: str):
         encoder = DataStoreEntityJSONEncoder()
-        repository = DatastoreViewerRepository(project_name=project_name)
+        namespace = flask.request.args.get('namespace')
+        repository = DatastoreViewerRepository(
+            project_name=project_name,
+            namespace=namespace,
+        )
         key_path = json.loads(base64.b64decode(url_safe_key))
         key = repository.build_key_by_flat_path(key_path=key_path)
         entity = repository.fetch_entity(key=key)
@@ -123,7 +135,11 @@ class EntityAPIView(flask.views.MethodView):
 
     def delete(self, project_name: str, kind: str, url_safe_key: str):
         encoder = DataStoreEntityJSONEncoder()
-        repository = DatastoreViewerRepository(project_name=project_name)
+        namespace = flask.request.args.get('namespace')
+        repository = DatastoreViewerRepository(
+            project_name=project_name,
+            namespace=namespace,
+        )
         key_path = json.loads(base64.b64decode(url_safe_key))
         key = repository.build_key_by_flat_path(key_path=key_path)
         repository.delete(key=key)
@@ -135,7 +151,11 @@ class EntityAPIView(flask.views.MethodView):
 
 class KindAPIView(flask.views.MethodView):
     def get(self, project_name: str):
-        repository = DatastoreViewerRepository(project_name=project_name)
+        namespace = flask.request.args.get('namespace')
+        repository = DatastoreViewerRepository(
+            project_name=project_name,
+            namespace=namespace,
+        )
         properties_by_kind = repository.fetch_parent_properties()
 
         kinds_json = defaultdict(list)
@@ -171,7 +191,11 @@ class SampleDataAPIView(flask.views.MethodView):
     def post(self):
         from google.cloud import datastore
 
-        client = get_client(project_name=os.environ.get('GOOGLE_CLOUD_PROJECT', ''))
+        namespace = flask.request.args.get('namespace')
+        client = get_client(
+            project_name=os.environ.get('GOOGLE_CLOUD_PROJECT', ''),
+            namespace=namespace,
+        )
 
         user1 = datastore.Entity(key=client.key("User"))
         user1.update({
